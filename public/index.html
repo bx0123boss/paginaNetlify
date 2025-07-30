@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generador de Códigos</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #codigo { font-size: 24px; margin: 20px; color: #2c3e50; }
+  </style>
+</head>
+<body>
+  <h1>Obtén un código al azar</h1>
+  <button onclick="getCodigo()">Generar Código</button>
+  <div id="codigo"></div>
+
+  <script>
+    async function getCodigo() {
+      const response = await fetch('/.netlify/functions/get-codigo');
+      const data = await response.json();
+      document.getElementById('codigo').innerText = data.codigo || "Error";
+    }
+  </script>
+</body>
+</html>
