@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Generador de Códigos</title>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-    #codigo { font-size: 24px; margin: 20px; color: #2c3e50; }
-  </style>
+  <title>Comprar un Código</title>
 </head>
 <body>
-  <h1>Obtén un código al azar</h1>
-  <button onclick="getCodigo()">Generar Código</button>
-  <div id="codigo"></div>
+  <h1>Compra tu código</h1>
+  <button id="comprar">Comprar por $X</button>
 
+  <script src="https://js.stripe.com/v3/"></script>
   <script>
-    async function getCodigo() {
-      const response = await fetch('/.netlify/functions/get-codigo');
-      const data = await response.json();
-      document.getElementById('codigo').innerText = data.codigo || "Error";
-    }
+    const stripe = Stripe('pk_test_51RjVoePh2xXaeWr6suOAkFHKB4CKgT7FPqz5hV23H8WnSm2FQm3HYf0ctlwf21BOndY8nXF6f3YKtNnUhx22bWSp00oJ8GsfK2'); // Usa tu public key real
+
+    document.getElementById('comprar').addEventListener('click', async () => {
+      const res = await fetch('/.netlify/functions/create-checkout-session');
+      const data = await res.json();
+
+      if (data.id) {
+        stripe.redirectToCheckout({ sessionId: data.id });
+      } else {
+        alert("Error al crear sesión de pago");
+      }
+    });
   </script>
 </body>
 </html>

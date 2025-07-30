@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>Código entregado</title></head>
+<body>
+  <h1>Tu código es:</h1>
+  <div id="codigo">Cargando...</div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+
+    if (sessionId) {
+      fetch('/.netlify/functions/get-codigo?session_id=' + sessionId)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('codigo').innerText = data.codigo || data.error || "Error";
+        });
+    } else {
+      document.getElementById('codigo').innerText = "No session ID encontrado";
+    }
+  </script>
+</body>
+</html>
