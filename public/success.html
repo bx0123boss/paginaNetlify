@@ -1,22 +1,109 @@
 <!DOCTYPE html>
 <html>
-<head><title>Código entregado</title></head>
+<head>
+  <title>Código de Acceso</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="success.css">
+</head>
 <body>
-  <h1>Tu código es:</h1>
-  <div id="codigo">Cargando...</div>
+  <div id="loading" class="status loading">
+    Procesando tu código de acceso...
+  </div>
+
+  <div id="success" class="status success" style="display: none;">
+    <h2>¡Gracias por tu compra!</h2>
+    <div class="code-container">
+      <div id="codigo" class="code-text"></div>
+      <button id="copiarBtn" class="copy-button">
+        <i class="far fa-copy"></i>
+      </button>
+    </div>
+    <div id="detalles"></div>
+  </div>
+
+  <div id="error" class="status error" style="display: none;"></div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get('session_id');
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+      const loadingEl = document.getElementById('loading');
+      const successEl = document.getElementById('success');
+      const errorEl = document.getElementById('error');
 
-    if (sessionId) {
-      fetch('/.netlify/functions/get-codigo?session_id=' + sessionId)
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById('codigo').innerText = data.codigo || data.error || "Error";
+      if (!sessionId) {
+        showError('No se encontró el ID de sesión');
+        return;
+      }
+
+      try {
+        // Configuración para desarrollo/producción
+        const baseUrl = window.location.hostname === 'localhost' 
+          ? 'http://localhost:8888' 
+          : '';
+
+        const response = await fetch(
+          `${baseUrl}/.netlify/functions/get-codigo?session_id=${sessionId}`
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error en el servidor');
+        }
+
+        const data = await response.json();
+        console.log(data);
+        // Mostrar éxito
+        loadingEl.style.display = 'none';
+        successEl.style.display = 'block';
+        
+        document.getElementById('codigo').textContent = `Tu código: ${data.codigo}`;
+        // Función para copiar al portapapeles
+        document.getElementById('copiarBtn').addEventListener('click', function() {
+          const codigo = data.codigo;
+          
+          navigator.clipboard.writeText(codigo)
+            .then(() => {
+              // Cambiar temporalmente el texto del botón
+              const originalText = this.innerHTML;
+              this.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+              // Restaurar después de 2 segundos
+              setTimeout(() => {
+                this.innerHTML = originalText;
+              }, 2000);
+            })
+            .catch(err => {
+              console.error('Error al copiar: ', err);
+              alert('No se pudo copiar el código');
+            });
         });
-    } else {
-      document.getElementById('codigo').innerText = "No session ID encontrado";
+        let detallesHTML = `
+          <p><strong>Paquete:</strong> ${data.tipo_paquete}</p>
+        `;
+        
+        if (data.detalles_pago) {
+          detallesHTML += `
+            <p><strong>Nombre:</strong> ${data.detalles_pago.nombre || 'No proporcionado'}</p>
+            <p><strong>Email:</strong> ${data.detalles_pago.email || 'No proporcionado'}</p>
+            <p><strong>Teléfono:</strong> ${data.detalles_pago.telefono || 'No proporcionado'}</p>
+            <p><strong>ID Compra:</strong> ${data.detalles_pago.id_payment_intent || 'No proporcionado'}</p>
+          `;
+        }
+        
+        document.getElementById('detalles').innerHTML = detallesHTML;
+
+      } catch (error) {
+        showError(error.message);
+      }
+    });
+
+    function showError(message) {
+      document.getElementById('loading').style.display = 'none';
+      const errorEl = document.getElementById('error');
+      errorEl.style.display = 'block';
+      errorEl.textContent = message;
+      console.error('Error:', message);
     }
   </script>
 </body>

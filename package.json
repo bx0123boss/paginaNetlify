@@ -1,7 +1,9 @@
 {
   "dependencies": {
     "@netlify/neon": "^0.1.0",
+    "nodemailer": "^7.0.5",
     "pg": "^8.16.3",
+    "resend": "^4.7.0",
     "stripe": "^18.3.0"
   }
 }
